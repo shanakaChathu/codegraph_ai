@@ -32,7 +32,7 @@ Steps you MUST follow:
 4) choose one target file (everything before '::' is the path)
 5) read_code on that file
 6) make minimal changes to implement the Story; return FULL updated file to write_code
-7) Create a branch 'fix/{branch_name}/{jira_id}' and open PR using create_pr.
+7) Create a branch '{branch_name}/{jira_id}' and open PR using create_pr.
 Return JSON with keys: pr_url, target_file.
 """
     agent = create_agent(tools=tools,model=llm,system_prompt=prompt,)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     #story_text = "currently in the get_stoptime function things are hadr coded in the re.seach function. i want change this function to move those string to constant file and refer from there"
     #story_text = "there is function in this code to get the airlne logo. currently its .png but not its changed to the .jpg. can you do the required changes in the repo"
     repo_path = "C:\\Users\\shana\\OneDrive\\Desktop\\AI_Olympiad\\amadeus-flight-booking-django"
-    branch_name="feat/jira_integration"
+    branch_name="feat/jira_integration_1"
     jira_id="CA-1"
     result = run_codegraph_agent(repo_path,branch_name,jira_id)
     print(result)

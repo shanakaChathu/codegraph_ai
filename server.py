@@ -28,12 +28,14 @@ def graph_demo(repo_path: str, q: str = ""):
 
 
 class RunReq(BaseModel):
-    story_text: str
     repo_path: str
+    branch_name: str
+    jira_id: str
+
 
 @app.post("/run")
 def run(req: RunReq):
-    return {"ok": True, "data": run_codegraph_agent(req.story_text, req.repo_path)}
+    return {"ok": True, "data": run_codegraph_agent(req.repo_path,req.branch_name,req.jira_id )}
 
 
 
