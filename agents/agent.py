@@ -2,10 +2,11 @@ import json
 import os
 from config import CFG
 from langchain_openai import ChatOpenAI
-from agents.tools import load_repo, search_graph_tool, read_code, write_code, create_pr
+from agents.tools import load_repo, search_graph_tool, read_code, write_code, create_pr,get_jira_story
 from langchain.agents import create_agent
 
-def run_codegraph_agent(story_text: str, repo_path: str,branch_name:str) -> dict:
+
+def run_codegraph_agent(repo_path: str,branch_name:str,jira_id:str) -> dict:
     # Set the API key in environment for LangChain to pick up
     os.environ['OPENAI_API_KEY'] = CFG.OPENAI_API_KEY
     
@@ -16,31 +17,31 @@ def run_codegraph_agent(story_text: str, repo_path: str,branch_name:str) -> dict
         temperature=0.1,
     )
 
-    tools = [load_repo, search_graph_tool, read_code, write_code, create_pr]
+    tools = [get_jira_story,load_repo, search_graph_tool, read_code, write_code, create_pr]
 
     prompt = f"""
 You are CodeGraph.AI.
-Story: {story_text}
 Repo: {repo_path}
 
 Steps you MUST follow:
-1) load_repo("{repo_path}")
-2) use search_graph_tool with keywords from the Story to find candidate "file::func" nodes
-3) choose one target file (everything before '::' is the path)
-4) read_code on that file
-5) make minimal changes to implement the Story; return FULL updated file to write_code
-6) create_pr with branch {branch_name} and title equal to the Story title
+1) Use get_jira_story to fetch Jira story {jira_id}.
+2) load_repo("{repo_path}")
+3) use search_graph_tool with keywords from the Story to find candidate "file::func" nodes
+4) choose one target file (everything before '::' is the path)
+5) read_code on that file
+6) make minimal changes to implement the Story; return FULL updated file to write_code
+7) Create a branch 'fix/{branch_name}/{jira_id}' and open PR using create_pr.
 Return JSON with keys: pr_url, target_file.
 """
-
     agent = create_agent(tools=tools,model=llm,system_prompt=prompt,)
-    result = agent.invoke({"story": story_text, "repo": repo_path, "branch_name":branch_name},config={"recursion_limit": 50})
+    result = agent.invoke({"repo": repo_path, "branch_name":branch_name,"jira_id":jira_id},config={"recursion_limit": 50})
     
     try:
         return json.loads(result)
     except Exception:
         return {"raw": result}
 
+        
 # def run_codegraph_agent(story_text: str, repo_path: str) -> dict:
 #     # Initialize OpenAI client directly
 #     client = OpenAI(api_key=CFG.OPENAI_API_KEY)
