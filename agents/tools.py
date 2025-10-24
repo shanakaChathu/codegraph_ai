@@ -4,6 +4,8 @@ from github import Github
 from langchain.tools import tool
 from config import CFG
 from agents.parser_graph import parse_repo, build_graph, query_graph
+from jira import JIRA
+import json 
 
 STATE = {
     "repo_path": None,
@@ -11,6 +13,19 @@ STATE = {
     "target_file": None,
     "jira_story": None,  # will use in Step 4
 }
+
+# Jira
+@tool("get_jira_story")
+def get_jira_story(story_id: str) -> str:
+    """Fetch Jira story title and description."""
+    jira = JIRA(server=CFG.JIRA_SERVER, basic_auth=(CFG.JIRA_EMAIL, CFG.JIRA_API_TOKEN))
+    issue = jira.issue(story_id)
+    data = {
+        "id": story_id,
+        "title": issue.fields.summary,
+        "description": issue.fields.description
+    }
+    return json.dumps(data)
 
 @tool("load_repo")
 def load_repo(repo_path: str) -> str:
@@ -75,6 +90,6 @@ def create_pr(branch_name: str, title: str) -> str:
         title=f"[CodeGraph.AI] {title}",
         body="Automated change by CodeGraph.AI",
         head=branch_name,
-        base="main"   # change to 'develop' if needed
+        base=CFG.PULL_REQ_BRANCH  # change to 'develop' if needed
     )
     return pr.html_url
