@@ -33,7 +33,7 @@ class RunReq(BaseModel):
     jira_id: str
 
 
-@app.post("/run")
+@app.post("/run-agent")
 def run(req: RunReq):
     return {"ok": True, "data": run_codegraph_agent(req.repo_path,req.branch_name,req.jira_id )}
 
